@@ -1,0 +1,6 @@
+.product-image {
+  width: 100%;         /* ocupa todo el ancho disponible */
+  //height: 500px;       /* altura estandarizada */
+  object-fit: cover;   /* recorta sin deformar */
+  border-radius: 8px;  /* opcional */
+}

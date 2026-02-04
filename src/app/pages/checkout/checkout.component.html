@@ -1,0 +1,253 @@
+<!-- header start -->
+<app-header></app-header>
+<!-- header end -->
+
+<main>
+  <!-- breadcrumb area start -->
+  <div style="background-color: #EFF1F5;">
+    <app-breadcrumb-one subtitle="Checkout"></app-breadcrumb-one>
+  </div>
+  <!-- breadcrumb area end -->
+
+  <!-- checkout area start -->
+  <section class="tp-checkout-area pb-120" style="background-color: #EFF1F5;">
+    <div class="container">
+      <div *ngIf="cartService.getCartProducts().length === 0 && !isCheckoutComplete;else checkoutBlock" class="text-center pt-50">
+        <h3 class="py-2">No tiene carrito para realizar pedido</h3>
+        <a routerLink="/" class="tp-checkout-btn">
+          volver a la tienda
+        </a>
+      </div>
+
+      <ng-template #thankYouMessage>
+        <div class="container"  class="text-center pt-50">
+          <h3 class="py-2">¡Gracias por su compra!</h3>
+          <p>Su pedido ha sido procesado correctamente.</p>
+          <a routerLink="/" class="tp-checkout-btn">
+            Continuar comprando
+          </a>
+        </div>
+      </ng-template>
+
+      <ng-template #checkoutBlock>
+        <div class="row" *ngIf="!isCheckoutComplete; else thankYouMessage">
+          <!--div class="col-xl-7 col-lg-7">
+            <div class="tp-checkout-verify">
+              <div class="tp-checkout-verify-item">
+                <p class="tp-checkout-verify-reveal">Returning customer?
+                  <button (click)="handleOpenLogin()" type="button" class="tp-checkout-login-form-reveal-btn">Click here
+                    to login
+                  </button>
+                </p>
+                <div *ngIf="isOpenLogin" id="tpReturnCustomerLoginForm" class="tp-return-customer">
+                  <app-login-form></app-login-form>
+                </div>
+              </div>
+              <div class="tp-checkout-verify-item">
+                <p class="tp-checkout-verify-reveal">Have a coupon?
+                  <button (click)="handleOpenCoupon()" type="button" class="tp-checkout-coupon-form-reveal-btn">Click
+                    here to enter your code
+                  </button>
+                </p>
+                <div *ngIf="isOpenCoupon" id="tpCheckoutCouponForm" class="tp-return-customer">
+                  <form (ngSubmit)="handleCouponSubmit()">
+                    <div class="tp-return-customer-input">
+                      <label>Coupon Code :</label>
+                      <input type="text" placeholder="Coupon" [(ngModel)]="couponCode" name="couponCode">
+                    </div>
+                    <button type="submit" class="tp-return-customer-btn tp-checkout-btn">
+                      Apply
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div-->
+
+          <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()">
+
+            <div class="row">
+              <div class="col-lg-7">
+
+                <div class="tp-checkout-bill-area">
+                  <h3 class="tp-checkout-bill-title">Datos de contacto</h3>
+
+                  <div class="tp-checkout-bill-form">
+                    <div class="tp-checkout-bill-inner">
+
+                      <div class="tp-checkout-input">
+                        <label>Nombre completo <span>*</span></label>
+                        <input type="text" placeholder="Tu nombre" formControlName="name" />
+                        <span *ngIf="name?.invalid && (name?.touched || formSubmitted)" class="text-danger">
+                          El nombre es obligatorio
+                        </span>
+                      </div>
+
+                      <div class="tp-checkout-input">
+                        <label>Teléfono (WhatsApp) <span>*</span></label>
+                        <input type="text" placeholder="Ej: 809-555-5555" formControlName="phone" />
+                        <span *ngIf="phone?.invalid && (phone?.touched || formSubmitted)" class="text-danger">
+                          El teléfono es obligatorio
+                        </span>
+                      </div>
+
+                      <div class="tp-checkout-input">
+                        <label>Ciudad <span>*</span></label>
+                        <input type="text" placeholder="Ciudad" formControlName="city" />
+                        <span *ngIf="city?.invalid && (city?.touched || formSubmitted)" class="text-danger">
+                          La ciudad es obligatoria
+                        </span>
+                      </div>
+
+                      <div class="tp-checkout-input">
+                        <label>Dirección <span>*</span></label>
+                        <input type="text" placeholder="Dirección completa" formControlName="address" />
+                        <span *ngIf="address?.invalid && (address?.touched || formSubmitted)" class="text-danger">
+                          La dirección es obligatoria
+                        </span>
+                      </div>
+
+                      <!-- QR -->
+                      <div class="mt-4 text-center">
+                        <h5>Escanea el QR para realizar el pago</h5>
+                        <img src="/assets/img/logo/qr.png" alt="QR tienda" />
+                      </div>
+
+                      <!-- Dropzone para subir depósito -->
+                      <div class="mt-4 tp-checkout-input">
+                        <label>Subir comprobante de depósito <span>*</span></label>
+                        <!-- error -->
+                        <div class="dropzone" (drop)="onFileDropped($event)" (dragover)="onDragOver($event)">
+                          <p>Arrastra tu imagen aquí o haz clic</p>
+                          <input type="file" (change)="onFileSelect($event)" />
+                        </div>
+
+                        <div *ngIf="pay">
+                          <p class="mt-2">Archivo seleccionado: {{ pay.name }}</p>
+                        </div>
+                      </div>
+                      <div *ngIf="(checkoutForm.get('pay')?.touched || formSubmitted) 
+                        && checkoutForm.get('pay')?.hasError('required')" class="text-danger">
+                        Debes subir el comprobante de depósito.
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="col-lg-5">
+                <!-- checkout place order -->
+                <div class="tp-checkout-place white-bg">
+                  <h3 class="tp-checkout-place-title">Tu Pedido</h3>
+
+                  <div class="tp-order-info-list">
+                    <ul>
+
+                      <!-- header -->
+                      <li class="tp-order-info-list-header">
+                        <h4>Productos</h4>
+                        <h4>Total</h4>
+                      </li>
+
+                      <!-- item list -->
+                      <li *ngFor="let item of cartService.getCartProducts()" class="tp-order-info-list-desc">
+                        <p>{{item.title}} <span> x {{item.orderQuantity}}</span></p>
+                        <span *ngIf="item.discount > 0; else noDiscount">
+                          Bs {{ (item.price - (item.price * item.discount / 100)).toFixed(2) }}
+                        </span>
+                        <ng-template #noDiscount>
+                          <span>Bs{{item.price.toFixed(2)}}</span>
+                        </ng-template>
+                      </li>
+
+                      <!-- subtotal -->
+                      <li class="tp-order-info-list-subtotal">
+                        <span>Subtotal</span>
+                        <span>Bs {{cartService.totalPriceQuantity().total.toFixed(2)}}</span>
+                      </li>
+
+                      <!-- shipping -->
+                      <li class="tp-order-info-list-shipping">
+                        <span>Envío <span style="color: red;">*</span></span>
+
+                        <div class="tp-order-info-list-shipping-item d-flex flex-column align-items-end">
+
+                          <span>
+                            <input id="flat_rate" type="radio" formControlName="ship" value="santa cruz">
+                            <label (click)="handleShippingCost(20)" for="flat_rate">
+                              Santa Cruz: <span>Bs 20.00</span>
+                            </label>
+                          </span>
+
+                          <span>
+                            <input id="local_pickup" type="radio" formControlName="ship" value="nacional">
+                            <label (click)="handleShippingCost(30)" for="local_pickup">
+                              Nacional: <span>Bs 30.00</span>
+                            </label>
+                          </span>
+
+                          <span>
+                            <input id="free_shipping" type="radio" formControlName="ship" value="gratis">
+                            <label (click)="handleShippingCost(0)" for="free_shipping">
+                              Recoger de tienda
+                            </label>
+                          </span>
+
+                        </div>
+                      </li>
+
+                      <!-- error -->
+                      <div *ngIf="(ship?.touched || formSubmitted) && ship?.hasError('required')" class="text-danger">
+                        Debe seleccionar un tipo de envío.
+                      </div>
+
+
+                      <!-- total -->
+                      <li class="tp-order-info-list-total">
+                        <span>Total</span>
+                        <span>
+                          Bs {{(cartService.totalPriceQuantity().total + shipCost).toFixed(2)}}
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <!--div class="tp-checkout-payment">
+                    <div class="tp-checkout-payment-item">
+                      <input type="radio" id="back_transfer" name="payment">
+                      <label (click)="handlePayment('bank')" for="back_transfer"
+                        data-bs-toggle="direct-bank-transfer">Direct Bank Transfer</label>
+                      <div *ngIf="payment_name === 'bank'" class="tp-checkout-payment-desc direct-bank-transfer">
+                        <p>Make your payment directly into our bank account. Please use your Order ID as the payment
+                          reference. Your order will not be shipped until the funds have cleared in our account.</p>
+                      </div>
+                    </div>
+                    <div class="tp-checkout-payment-item">
+                      <input type="radio" id="cheque_payment" name="payment">
+                      <label (click)="handlePayment('cheque')" for="cheque_payment">Cheque Payment</label>
+                      <div *ngIf="payment_name === 'cheque'" class="tp-checkout-payment-desc cheque-payment">
+                        <p>Make your payment directly into our bank account. Please use your Order ID as the payment
+                          reference. Your order will not be shipped until the funds have cleared in our account.</p>
+                      </div>
+                    </div>
+                  </div-->
+                  <div class="tp-checkout-btn-wrapper">
+                    <button type="submit" class="tp-checkout-btn w-100">Realizar orden</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </form>
+        </div>
+      </ng-template>
+    </div>
+  </section>
+  <!-- checkout area end -->
+</main>
+
+
+<!-- footer start -->
+<app-footer [primary_style]="true"></app-footer>
+<!-- footer end -->
